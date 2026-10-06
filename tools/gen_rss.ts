@@ -20,7 +20,7 @@ import urljoin from "url-join";
 import { convert } from "html-to-text";
 import "./extensions.js";
 import { PersonMeta } from "../src/logic/data.js";
-import { dataHost } from "../src/logic/config.js";
+
 import { screenshotUrl } from "./render_image.js";
 
 const markedOptions = { async: false } as const;
@@ -68,7 +68,7 @@ function resolveMimeType(imageUrl: string): string {
  * 4. Format text spacing using autocorrect
  * 5. Convert Markdown to HTML and extract clean text summary
  */
-function renderMarkdownContent(rawMarkdown: string, personPath: string): { html: string; textSummary: string } {
+function renderMarkdownContent(rawMarkdown: string, personPath: string, dataHost: string): { html: string; textSummary: string } {
   const personDataUrl = urljoin(dataHost, "people", personPath);
 
   // Step 1: Replace project URL placeholders
@@ -110,7 +110,7 @@ function renderMarkdownContent(rawMarkdown: string, personPath: string): { html:
  * Resolve profile avatar image URL from info.json, or fallback to screenshot card.
  * Always reads the default (zh-hans) info.json since profileUrl is language-independent.
  */
-function resolvePersonImage(personDir: string, personPath: string, host: string): string {
+function resolvePersonImage(personDir: string, personPath: string, host: string, dataHost: string): string {
   const infoJsonPath = personDir.join("info.json");
   const rawInfo = infoJsonPath.read_file();
   if (rawInfo) {
@@ -240,6 +240,7 @@ async function generateFeedsForLang(
   distDir: string,
   dataDir: string,
 ): Promise<void> {
+  const dataHostUrl = urljoin(host, "data");
   const allPeople = scanAllAvailablePeople(dataDir, lang.fileSuffix);
   if (!allPeople.length) {
     console.warn(`[RSS/${lang.langCode}] No people entries found, skipping.`);
@@ -322,7 +323,7 @@ async function generateFeedsForLang(
       }
     }
 
-    const { html: contentHtml, textSummary } = renderMarkdownContent(rawContent, person.path);
+    const { html: contentHtml, textSummary } = renderMarkdownContent(rawContent, person.path, dataHostUrl);
 
     // Pick description: frontmatter desc -> first 180 chars of summary -> fallback title
     const description = explicitDesc || (textSummary
@@ -330,7 +331,7 @@ async function generateFeedsForLang(
       : title);
 
     const profileUrl = urljoin(host, "profile", person.path);
-    const imageUrl = resolvePersonImage(personDir, person.path, host);
+    const imageUrl = resolvePersonImage(personDir, person.path, host, dataHostUrl);
 
     // Resolve published date (when PR merged into main branch, fallback to died date)
     const pageDate = pageDates[person.path] || pageDates[person.id];
@@ -398,7 +399,7 @@ async function generateFeedsForLang(
  */
 export async function generateRssFeeds(options: RssOptions = {}) {
   const distDir = options.distDir ?? "dist";
-  const dataDir = options.dataDir ?? "data-repo";
+  const dataDir = options.dataDir ?? "public/data";
 
   // 1. Resolve host
   let host = options.host;

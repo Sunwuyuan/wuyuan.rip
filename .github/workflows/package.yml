@@ -35,13 +35,6 @@ jobs:
           name: dist
           path: dist
 
-      - name: Checkout data repo's github pages
-        uses: actions/checkout@v6
-        with:
-          repository: "one-among-us/data"
-          ref: "gh-pages"
-          path: "data-repo"
-
       - name: Package
         uses: one-among-us/puppeteer-headful@20
         with:

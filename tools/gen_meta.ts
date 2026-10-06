@@ -1,15 +1,13 @@
 /**
  * READ THIS BEFORE RUNNING THE SCRIPT
  *
- * Please clone the data repo's built files before running this script. Generating description content depends on the
- * data repo. You can do: `git clone -b gh-pages https://github.com/one-among-us/data data-repo`
+ * Please build the frontend first (`yarn build`). This script reads the embedded data from `public/data`.
  */
 
 import path from "path";
 import fs from "fs-extra";
 
 import './extensions.js'
-import {dataHost} from "../src/logic/config.js";
 import {PersonMeta} from "../src/logic/data.js";
 import {marked} from "marked";
 import metadataParser from 'markdown-yaml-metadata-parser';
@@ -24,19 +22,19 @@ import {generateSitemap} from "./gen_sitemap.js";
 const markedOptions = { async: false } as const;
 
 const dist = "dist"
-const data = "data-repo"
+const data = "public/data"
 
 // Read host
 const host = 'https://' + dist.join("CNAME").read_file().trim()
 
-// Read actualHide list from data-repo (built by the data repo's build step)
+// Read actualHide list from the embedded data (public/data, built by the data repo's build step)
 const actualHideListRaw = data.join("actual-hide-list.json").read_file()
 const actualHideSet = new Set<string>(actualHideListRaw ? JSON.parse(actualHideListRaw) : [])
 
 // Read html
 const html = dist.join("index.original.html").read_file() ?? dist.join("index.html").read_file()
 const title = "那些秋叶 - One Among Us"
-const defaultImage = urljoin(dataHost, "meta.jpg")
+const defaultImage = urljoin(host, "data", "meta.jpg")
 
 // Backup existing index.html
 fs.writeFileSync(dist.join("index.original.html"), html)

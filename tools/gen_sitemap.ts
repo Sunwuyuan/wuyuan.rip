@@ -30,7 +30,7 @@ interface PageDateEntry {
  */
 export async function generateSitemap(options: SitemapOptions = {}) {
   const distDir = options.distDir ?? "dist";
-  const dataDir = options.dataDir ?? "data-repo";
+  const dataDir = options.dataDir ?? "public/data";
 
   // 1. Resolve host
   let host = options.host;
